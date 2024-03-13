@@ -405,6 +405,38 @@ func (c *Client) QueueSongOpt(ctx context.Context, trackID ID, opt *PlayOptions)
 	)
 }
 
+func (c *Client) QueueEpisode(ctx context.Context, episodeID ID) error {
+	return c.QueueEpisodeOpt(ctx, episodeID, nil)
+}
+
+func (c *Client) QueueEpisodeOpt(ctx context.Context, episodeID ID, opt *PlayOptions) error {
+	uri := "spotify:episode:" + episodeID
+	spotifyURL := c.baseURL + "me/player/queue"
+	v := url.Values{}
+
+	v.Set("uri", uri.String())
+
+	if opt != nil {
+		if opt.DeviceID != nil {
+			v.Set("device_id", opt.DeviceID.String())
+		}
+	}
+
+	if params := v.Encode(); params != "" {
+		spotifyURL += "?" + params
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, spotifyURL, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	return c.execute(req, nil,
+		http.StatusAccepted,
+		http.StatusNoContent,
+	)
+}
+
 // Next skips to the next track in the user's queue in the user's
 // currently active device. This call requires ScopeUserModifyPlaybackState
 // in order to modify the player state
