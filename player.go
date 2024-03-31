@@ -136,6 +136,17 @@ type Queue struct {
 	Items            []FullTrack `json:"queue"`
 }
 
+type QueueItem struct {
+	IsEpisode bool
+	Episode   EpisodePage
+	Track     FullTrack
+}
+
+type NewQueue struct {
+	CurrentlyPlaying QueueItem   `json:"currently_playing"`
+	Items            []QueueItem `json:"queue"`
+}
+
 // PlayerDevices information about available devices for the current user.
 //
 // Requires the ScopeUserReadPlaybackState scope in order to read information
@@ -367,7 +378,69 @@ func (c *Client) GetQueue(ctx context.Context) (*Queue, error) {
 	return &q, nil
 }
 
-// QueueSong adds a song to the user's queue on the user's currently
+func (c *Client) GetNewQueue(ctx context.Context) (*NewQueue, error) {
+	spotifyURL := c.baseURL + "me/player/queue"
+	v := url.Values{}
+
+	if params := v.Encode(); params != "" {
+		spotifyURL += "?" + params
+	}
+
+	var response map[string]interface{}
+	// TODO: parse the response self, since Go does not support sumtypes
+	err := c.get(ctx, spotifyURL, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	var q NewQueue
+
+	if currentlyPlaying, ok := response["currently_playing"]; ok {
+		// Check if the currently playing item is a track or an episode
+		// Do this by checking if the "type" key is "track"
+		if currentlyPlaying.(map[string]interface{})["type"] == "track" {
+			var track FullTrack
+			err = json.Unmarshal(*response["currently_playing"].(*json.RawMessage), &track)
+			if err != nil {
+				return nil, err
+			}
+			q.CurrentlyPlaying = QueueItem{Track: track}
+		} else {
+			var episode EpisodePage
+			err = json.Unmarshal(*response["currently_playing"].(*json.RawMessage), &episode)
+			if err != nil {
+				return nil, err
+			}
+			q.CurrentlyPlaying = QueueItem{IsEpisode: true, Episode: episode}
+		}
+	}
+
+	if items, ok := response["queue"]; ok {
+		// Check if the currently playing item is a track or an episode
+		// Do this by checking if the "type" key is "track"
+		for _, item := range items.([]interface{}) {
+			if item.(map[string]interface{})["type"] == "track" {
+				var track FullTrack
+				err = json.Unmarshal(*item.(*json.RawMessage), &track)
+				if err != nil {
+					return nil, err
+				}
+				q.Items = append(q.Items, QueueItem{Track: track})
+			} else {
+				var episode EpisodePage
+				err = json.Unmarshal(*item.(*json.RawMessage), &episode)
+				if err != nil {
+					return nil, err
+				}
+				q.Items = append(q.Items, QueueItem{IsEpisode: true, Episode: episode})
+			}
+		}
+	}
+
+	return &q, nil
+}
+
+// QueueSong adds a song to the user's queue on the user's currently 
 // active device. This call requires ScopeUserModifyPlaybackState
 // in order to modify the player state
 func (c *Client) QueueSong(ctx context.Context, trackID ID) error {
