@@ -378,7 +378,7 @@ func (c *Client) GetQueue(ctx context.Context) (*Queue, error) {
 	return &q, nil
 }
 
-func (c *Client) GetNewQueue(ctx context.Context) (*NewQueue, error) {
+func (c *Client) GetNewQueue(ctx context.Context) (*map[string]interface{}, error) {
 	spotifyURL := c.baseURL + "me/player/queue"
 	v := url.Values{}
 
@@ -393,51 +393,53 @@ func (c *Client) GetNewQueue(ctx context.Context) (*NewQueue, error) {
 		return nil, err
 	}
 
-	var q NewQueue
+	return &response, nil
 
-	if currentlyPlaying, ok := response["currently_playing"]; ok {
-		// Check if the currently playing item is a track or an episode
-		// Do this by checking if the "type" key is "track"
-		if currentlyPlaying.(map[string]interface{})["type"] == "track" {
-			var track FullTrack
-			err = json.Unmarshal(*response["currently_playing"].(*json.RawMessage), &track)
-			if err != nil {
-				return nil, err
-			}
-			q.CurrentlyPlaying = QueueItem{Track: track}
-		} else {
-			var episode EpisodePage
-			err = json.Unmarshal(*response["currently_playing"].(*json.RawMessage), &episode)
-			if err != nil {
-				return nil, err
-			}
-			q.CurrentlyPlaying = QueueItem{IsEpisode: true, Episode: episode}
-		}
-	}
+	// var q NewQueue
 
-	if items, ok := response["queue"]; ok {
-		// Check if the currently playing item is a track or an episode
-		// Do this by checking if the "type" key is "track"
-		for _, item := range items.([]interface{}) {
-			if item.(map[string]interface{})["type"] == "track" {
-				var track FullTrack
-				err = json.Unmarshal(*item.(*json.RawMessage), &track)
-				if err != nil {
-					return nil, err
-				}
-				q.Items = append(q.Items, QueueItem{Track: track})
-			} else {
-				var episode EpisodePage
-				err = json.Unmarshal(*item.(*json.RawMessage), &episode)
-				if err != nil {
-					return nil, err
-				}
-				q.Items = append(q.Items, QueueItem{IsEpisode: true, Episode: episode})
-			}
-		}
-	}
+	// if currentlyPlaying, ok := response["currently_playing"]; ok {
+	// 	// Check if the currently playing item is a track or an episode
+	// 	// Do this by checking if the "type" key is "track"
+	// 	if currentlyPlaying.(map[string]interface{})["type"] == "track" {
+	// 		var track FullTrack
+	// 		err = json.Unmarshal(*response["currently_playing"].(*json.RawMessage), &track)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		q.CurrentlyPlaying = QueueItem{Track: track}
+	// 	} else {
+	// 		var episode EpisodePage
+	// 		err = json.Unmarshal(*response["currently_playing"].(*json.RawMessage), &episode)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		q.CurrentlyPlaying = QueueItem{IsEpisode: true, Episode: episode}
+	// 	}
+	// }
 
-	return &q, nil
+	// if items, ok := response["queue"]; ok {
+	// 	// Check if the currently playing item is a track or an episode
+	// 	// Do this by checking if the "type" key is "track"
+	// 	for _, item := range items.([]interface{}) {
+	// 		if item.(map[string]interface{})["type"] == "track" {
+	// 			var track FullTrack
+	// 			err = json.Unmarshal(*item.(*json.RawMessage), &track)
+	// 			if err != nil {
+	// 				return nil, err
+	// 			}
+	// 			q.Items = append(q.Items, QueueItem{Track: track})
+	// 		} else {
+	// 			var episode EpisodePage
+	// 			err = json.Unmarshal(*item.(*json.RawMessage), &episode)
+	// 			if err != nil {
+	// 				return nil, err
+	// 			}
+	// 			q.Items = append(q.Items, QueueItem{IsEpisode: true, Episode: episode})
+	// 		}
+	// 	}
+	// }
+
+	// return &q, nil
 }
 
 // QueueSong adds a song to the user's queue on the user's currently 
