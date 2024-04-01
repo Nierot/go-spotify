@@ -138,8 +138,48 @@ type Queue struct {
 
 type QueueItem struct {
 	IsEpisode bool
-	Episode   EpisodePage
-	Track     FullTrack
+	Episode   NewEpisode
+	Track     NewTrack
+}
+
+type NewEpisode struct {
+	AudioPreviewUrl string `json:"audio_preview_url"`
+	Description     string `json:"description"`
+	HTMLDescription string `json:"html_description"`
+	DurationMS      int 	 `json:"duration_ms"`
+	Explicit        bool   `json:"explicit"`
+	ExternalURLs    map[string]string `json:"external_urls"`
+	Href            string `json:"href"`
+	ID              string `json:"id"`
+	Images          []Image `json:"images"`
+	IsExternallyHosted bool `json:"is_externally_hosted"`
+	IsPlayable      bool   `json:"is_playable"`
+	Name            string `json:"name"`
+	ReleaseDate     string `json:"release_date"`
+	ReleaseDatePrecision string `json:"release_date_precision"`
+	Type						string `json:"type"`
+	URI             string `json:"uri"`
+	Show						SimpleShow   `json:"show"`
+}
+
+type NewTrack struct {
+	Album					 		SimpleAlbum `json:"album"`
+	Artists				 		[]FullArtist `json:"artists"`
+	DiscNumber			 	int          `json:"disc_number"`
+	DurationMS       	int          `json:"duration_ms"`
+	Explicit         	bool         `json:"explicit"`
+	ExternalIds 			map[string]string `json:"external_ids"`
+	ExternalURLs     	map[string]string `json:"external_urls"`
+	Href             	string       `json:"href"`
+	ID               	string       `json:"id"`
+	IsPlayable        bool         `json:"is_playable"`
+	Name						 	string       `json:"name"`
+	Popularity       	int          `json:"popularity"`
+	PreviewURL			 	string       `json:"preview_url"`
+	TrackNumber       int          `json:"track_number"`
+	Type              string       `json:"type"`
+	URI               string       `json:"uri"`
+	IsLocal					 	bool         `json:"is_local"`
 }
 
 type NewQueue struct {
